@@ -97,6 +97,7 @@ public class Database {
 	 * one-time password (OTP) for that user.  This is intentionally not persisted in SQL
 	 * to keep OTP handling simple and ephemeral. </p>
 	 */
+	
 	private java.util.Map<String, String> activeOtps = new java.util.HashMap<>();
 
 	/*******
@@ -106,6 +107,7 @@ public class Database {
 	 * @param username the target account
 	 * @return 6-digit OTP or null
 	 */
+	
 	public String generateOneTimePasswordFor(String username) {
 	    // Ensure user exists first
 	    if (!getUserAccountDetails(username)) return null;
@@ -120,6 +122,7 @@ public class Database {
 	 * <p> Method: hasActiveOtp </p>
 	 * <p> True if an unconsumed OTP exists for the user. </p>
 	 */
+	
 	public boolean hasActiveOtp(String username) {
 	    return activeOtps.containsKey(username);
 	}
@@ -128,6 +131,7 @@ public class Database {
 	 * <p> Method: checkAndConsumeOtp </p>
 	 * <p> Validate OTP; on match, remove it (single use) and return true. </p>
 	 */
+	
 	public boolean checkAndConsumeOtp(String username, String otp) {
 	    String stored = activeOtps.get(username);
 	    if (stored != null && stored.equals(otp)) {
@@ -141,6 +145,7 @@ public class Database {
 	 * <p> Method: clearOtp </p>
 	 * <p> Revoke any active OTP for the user (admin action). </p>
 	 */
+	
 	public void clearOtp(String username) { activeOtps.remove(username); }
 
 	/*******
@@ -150,6 +155,7 @@ public class Database {
 	 * @param username the account to update
 	 * @param newPassword the new password
 	 */
+	
 	public void updatePassword(String username, String newPassword) {
 		String sql = "UPDATE userDB SET password = ? WHERE userName = ?"; 
 
@@ -177,15 +183,16 @@ public class Database {
 
 	
 	
-/*******
- * <p> Method: connectToDatabase </p>
- * 
- * <p> Description: Used to establish the in-memory instance of the H2 database from secondary
- *		storage.</p>
- *
- * @throws SQLException when the DriverManager is unable to establish a connection
- * 
- */
+	/*******
+	 * <p> Method: connectToDatabase </p>
+	 * 
+	 * <p> Description: Used to establish the in-memory instance of the H2 database from secondary
+	 *		storage.</p>
+	 *
+	 * @throws SQLException when the DriverManager is unable to establish a connection
+	 * 
+	 */
+	
 	public void connectToDatabase() throws SQLException {
 		try {
 			Class.forName(JDBC_DRIVER); // Load the JDBC driver
@@ -201,12 +208,13 @@ public class Database {
 	}
 
 	
-/*******
- * <p> Method: createTables </p>
- * 
- * <p> Description: Used to create new instances of the two database tables used by this class.</p>
- * 
- */
+	/*******
+	 * <p> Method: createTables </p>
+	 * 
+	 * <p> Description: Used to create new instances of the two database tables used by this class.</p>
+	 * 
+	 */
+	
 	private void createTables() throws SQLException {
 		// Create the user database
 		String userTable = "CREATE TABLE IF NOT EXISTS userDB ("
@@ -242,6 +250,7 @@ public class Database {
 		    + "authorUsername VARCHAR(255) NOT NULL, "
 		    + "title VARCHAR(120) NOT NULL, "
 		    + "body VARCHAR(5000) NOT NULL, "
+		    + "thread VARCHAR(50) NOT NULL DEFAULT 'General', "
 		    + "createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
 		    + "updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, "
 		    + "isDeleted BOOL DEFAULT FALSE"
@@ -267,14 +276,15 @@ public class Database {
 	}
 
 	
-/*******
- * <p> Method: isDatabaseEmpty </p>
- * 
- * <p> Description: If the user database has no rows, true is returned, else false.</p>
- * 
- * @return true if the database is empty, else it returns false
- * 
- */
+	/*******
+	 * <p> Method: isDatabaseEmpty </p>
+	 * 
+	 * <p> Description: If the user database has no rows, true is returned, else false.</p>
+	 * 
+	 * @return true if the database is empty, else it returns false
+	 * 
+	 */
+	
 	public boolean isDatabaseEmpty() {
 	    String query = "SELECT COUNT(*) AS count FROM userDB";
 	    try {
@@ -291,14 +301,15 @@ public class Database {
 	}
 	
 	
-/*******
- * <p> Method: getNumberOfUsers </p>
- * 
- * <p> Description: Returns an integer .of the number of users currently in the user database. </p>
- * 
- * @return the number of user records in the database.
- * 
- */
+	/*******
+	 * <p> Method: getNumberOfUsers </p>
+	 * 
+	 * <p> Description: Returns an integer .of the number of users currently in the user database. </p>
+	 * 
+	 * @return the number of user records in the database.
+	 * 
+	 */
+	
 	public int getNumberOfUsers() {
 		String query = "SELECT COUNT(*) AS count FROM userDB";
 		try {
@@ -312,16 +323,17 @@ public class Database {
 		return 0;
 	}
 
-/*******
- * <p> Method: register(User user) </p>
- * 
- * <p> Description: Creates a new row in the database using the user parameter. </p>
- * 
- * @throws SQLException when there is an issue creating the SQL command or executing it.
- * 
- * @param user specifies a user object to be added to the database.
- * 
- */
+	/*******
+	 * <p> Method: register(User user) </p>
+	 * 
+	 * <p> Description: Creates a new row in the database using the user parameter. </p>
+	 * 
+	 * @throws SQLException when there is an issue creating the SQL command or executing it.
+	 * 
+	 * @param user specifies a user object to be added to the database.
+	 * 
+	 */
+	
 	public void register(User user) throws SQLException {
 		String insertUser = "INSERT INTO userDB (userName, password, firstName, middleName, "
 				+ "lastName, preferredFirstName, emailAddress, adminRole, newRole1, newRole2) "
@@ -362,14 +374,15 @@ public class Database {
 		
 	}
 	
-/*******
- *  <p> Method: List getUserList() </p>
- *  
- *  <P> Description: Generate an List of Strings, one for each user in the database,
- *  starting with "<Select User>" at the start of the list. </p>
- *  
- *  @return a list of userNames found in the database.
- */
+	/*******
+	 *  <p> Method: List getUserList() </p>
+	 *  
+	 *  <P> Description: Generate an List of Strings, one for each user in the database,
+	 *  starting with "<Select User>" at the start of the list. </p>
+	 *  
+	 *  @return a list of userNames found in the database.
+	 */
+	
 	public List<String> getUserList () {
 		List<String> userList = new ArrayList<String>();
 		userList.add("<Select a User>");
@@ -386,17 +399,18 @@ public class Database {
 		return userList;
 	}
 
-/*******
- * <p> Method: boolean loginAdmin(User user) </p>
- * 
- * <p> Description: Check to see that a user with the specified username, password, and role
- * 		is the same as a row in the table for the username, password, and role. </p>
- * 
- * @param user specifies the specific user that should be logged in playing the Admin role.
- * 
- * @return true if the specified user has been logged in as an Admin else false.
- * 
- */
+	/*******
+	 * <p> Method: boolean loginAdmin(User user) </p>
+	 * 
+	 * <p> Description: Check to see that a user with the specified username, password, and role
+	 * 		is the same as a row in the table for the username, password, and role. </p>
+	 * 
+	 * @param user specifies the specific user that should be logged in playing the Admin role.
+	 * 
+	 * @return true if the specified user has been logged in as an Admin else false.
+	 * 
+	 */
+	
 	public boolean loginAdmin(User user){
 		// Validates an admin user's login credentials so the user can login in as an Admin.
 		String query = "SELECT * FROM userDB WHERE userName = ? AND password = ? AND "
@@ -413,17 +427,18 @@ public class Database {
 	}
 	
 	
-/*******
- * <p> Method: boolean loginRole1(User user) </p>
- * 
- * <p> Description: Check to see that a user with the specified username, password, and role
- * 		is the same as a row in the table for the username, password, and role. </p>
- * 
- * @param user specifies the specific user that should be logged in playing the Student role.
- * 
- * @return true if the specified user has been logged in as an Student else false.
- * 
- */
+	/*******
+	 * <p> Method: boolean loginRole1(User user) </p>
+	 * 
+	 * <p> Description: Check to see that a user with the specified username, password, and role
+	 * 		is the same as a row in the table for the username, password, and role. </p>
+	 * 
+	 * @param user specifies the specific user that should be logged in playing the Student role.
+	 * 
+	 * @return true if the specified user has been logged in as an Student else false.
+	 * 
+	 */
+	
 	public boolean loginRole1(User user) {
 		// Validates a student user's login credentials.
 		String query = "SELECT * FROM userDB WHERE userName = ? AND password = ? AND "
@@ -504,6 +519,7 @@ public class Database {
 	 * @return true if the delete was successful, else false
 	 *  
 	 */
+	
 	public boolean removeUser(String username) {
 	    String query = "DELETE FROM userDB WHERE userName = ?";
 	    try (PreparedStatement pstmt = connection.prepareStatement(query)) {
@@ -537,22 +553,22 @@ public class Database {
 	}	
 
 	
-	/*******
-	 * <p> Method: String generateInvitationCode(String emailAddress, String role) </p>
-	 * 
-	 * <p> Description: Given an email address and a roles, this method establishes and invitation
-	 * code and adds a record to the InvitationCodes table.  When the invitation code is used, the
-	 * stored email address is used to establish the new user and the record is removed from the
-	 * table.</p>
-	 * 
-	 * @param emailAddress specifies the email address for this new user.
-	 * 
-	 * @param role specified the role that this new user will play.
-	 * 
-	 * @return the code of six characters so the new user can use it to securely setup an account.
-	 * 
-	 */
-	// Generates a new invitation code and inserts it into the database.
+		/*******
+		 * <p> Method: String generateInvitationCode(String emailAddress, String role) </p>
+		 * 
+		 * <p> Description: Given an email address and a roles, this method establishes and invitation
+		 * code and adds a record to the InvitationCodes table.  When the invitation code is used, the
+		 * stored email address is used to establish the new user and the record is removed from the
+		 * table.</p>
+		 * 
+		 * @param emailAddress specifies the email address for this new user.
+		 * 
+		 * @param role specified the role that this new user will play.
+		 * 
+		 * @return the code of six characters so the new user can use it to securely setup an account.
+		 * 
+		 */
+		// Generates a new invitation code and inserts it into the database.
 		public String generateInvitationCode(String emailAddress, String role) {
 		    String code = UUID.randomUUID().toString().substring(0, 6); // 6-char code
 		    java.sql.Timestamp expiresAt =
@@ -570,14 +586,14 @@ public class Database {
 		}
 
 	
-	/*******
-	 * <p> Method: int getNumberOfInvitations() </p>
-	 * 
-	 * <p> Description: Determine the number of outstanding invitations in the table.</p>
-	 *  
-	 * @return the number of invitations in the table.
-	 * 
-	 */
+		/*******
+		 * <p> Method: int getNumberOfInvitations() </p>
+		 * 
+		 * <p> Description: Determine the number of outstanding invitations in the table.</p>
+		 *  
+		 * @return the number of invitations in the table.
+		 * 
+		 */
 		// Number of invitations in the database
 		public int getNumberOfInvitations() {
 			String query = "SELECT COUNT(*) AS count FROM InvitationCodes WHERE expiresAt > CURRENT_TIMESTAMP";
@@ -593,16 +609,16 @@ public class Database {
 		}
 	
 	
-	/*******
-	 * <p> Method: boolean emailaddressHasBeenUsed(String emailAddress) </p>
-	 * 
-	 * <p> Description: Determine if an email address has been user to establish a user.</p>
-	 * 
-	 * @param emailAddress is a string that identifies a user in the table
-	 *  
-	 * @return true if the email address is in the table, else return false.
-	 * 
-	 */
+		/*******
+		 * <p> Method: boolean emailaddressHasBeenUsed(String emailAddress) </p>
+		 * 
+		 * <p> Description: Determine if an email address has been user to establish a user.</p>
+		 * 
+		 * @param emailAddress is a string that identifies a user in the table
+		 *  
+		 * @return true if the email address is in the table, else return false.
+		 * 
+		 */
 		// Check to see if an email address is already in the database
 		public boolean emailaddressHasBeenUsed(String emailAddress) {
 		    String query = "SELECT COUNT(*) AS count FROM InvitationCodes " +
@@ -625,7 +641,6 @@ public class Database {
 	   * 
 	   */
 
-		
 		public void purgeExpiredInvitationsForEmail(String emailAddress) {
 		    String sql = "DELETE FROM InvitationCodes " +
 		                 "WHERE emailAddress = ? AND expiresAt <= CURRENT_TIMESTAMP";
@@ -636,16 +651,16 @@ public class Database {
 		}
 	
 	
-	/*******
-	 * <p> Method: String getRoleGivenAnInvitationCode(String code) </p>
-	 * 
-	 * <p> Description: Get the role associated with an invitation code.</p>
-	 * 
-	 * @param code is the 6 character String invitation code
-	 *  
-	 * @return the role for the code or an empty string.
-	 * 
-	 */
+		/*******
+		 * <p> Method: String getRoleGivenAnInvitationCode(String code) </p>
+		 * 
+		 * <p> Description: Get the role associated with an invitation code.</p>
+		 * 
+		 * @param code is the 6 character String invitation code
+		 *  
+		 * @return the role for the code or an empty string.
+		 * 
+		 */
 		// Obtain the roles associated with an invitation code.
 		public String getRoleGivenAnInvitationCode(String code) {
 			String query = "SELECT role, expiresAt FROM InvitationCodes WHERE code = ?";
@@ -662,16 +677,16 @@ public class Database {
 		}
 
 	
-	/*******
-	 * <p> Method: String getEmailAddressUsingCode (String code ) </p>
-	 * 
-	 * <p> Description: Get the email addressed associated with an invitation code.</p>
-	 * 
-	 * @param code is the 6 character String invitation code
-	 *  
-	 * @return the email address for the code or an empty string.
-	 * 
-	 */
+		/*******
+		 * <p> Method: String getEmailAddressUsingCode (String code ) </p>
+		 * 
+		 * <p> Description: Get the email addressed associated with an invitation code.</p>
+		 * 
+		 * @param code is the 6 character String invitation code
+		 *  
+		 * @return the email address for the code or an empty string.
+		 * 
+		 */
 		// For a given invitation code, return the associated email address of an empty string
 		public String getEmailAddressUsingCode (String code ) {
 			String query = "SELECT emailAddress, expiresAt FROM InvitationCodes WHERE code = ?";
@@ -1019,22 +1034,22 @@ public class Database {
 	}
 	
 	
-	/*******
-	 * <p> Method: boolean updateUserRole(String username, String role, String value) </p>
-	 * 
-	 * <p> Description: Update a specified role for a specified user's and set and update all the
-	 * 		current user attributes.</p>
-	 * 
-	 * @param username is the username of the user
-	 *  
-	 * @param role is string that specifies the role to update
-	 * 
-	 * @param value is the string that specified TRUE or FALSE for the role
-	 * 
-	 * @return true if the update was successful, else false
-	 *  
-	 */
-	// Update a users role
+		/*******
+		 * <p> Method: boolean updateUserRole(String username, String role, String value) </p>
+		 * 
+		 * <p> Description: Update a specified role for a specified user's and set and update all the
+		 * 		current user attributes.</p>
+		 * 
+		 * @param username is the username of the user
+		 *  
+		 * @param role is string that specifies the role to update
+		 * 
+		 * @param value is the string that specified TRUE or FALSE for the role
+		 * 
+		 * @return true if the update was successful, else false
+		 *  
+		 */
+		// Update a users role
 		public boolean updateUserRole(String username, String role, String value) {
 			if (role.compareTo("Admin") == 0) {
 				String query = "UPDATE userDB SET adminRole = ? WHERE username = ?";
@@ -1085,7 +1100,6 @@ public class Database {
 		}
 	
 	
-	// Attribute getters for the current user
 	/*******
 	 * <p> Method: String getCurrentUsername() </p>
 	 * 
@@ -1094,6 +1108,7 @@ public class Database {
 	 * @return the username value is returned
 	 *  
 	 */
+	 // Attribute getters for the current user
 	public String getCurrentUsername() { return currentUsername;};
 
 	
@@ -1105,6 +1120,7 @@ public class Database {
 	 * @return the password value is returned
 	 *  
 	 */
+	
 	public String getCurrentPassword() { return currentPassword;};
 
 	
@@ -1116,6 +1132,7 @@ public class Database {
 	 * @return the first name value is returned
 	 *  
 	 */
+	
 	public String getCurrentFirstName() { return currentFirstName;};
 
 	
@@ -1127,6 +1144,7 @@ public class Database {
 	 * @return the middle name value is returned
 	 *  
 	 */
+	
 	public String getCurrentMiddleName() { return currentMiddleName;};
 
 	
@@ -1138,6 +1156,7 @@ public class Database {
 	 * @return the last name value is returned
 	 *  
 	 */
+	
 	public String getCurrentLastName() { return currentLastName;};
 
 	
@@ -1149,6 +1168,7 @@ public class Database {
 	 * @return the preferred first name value is returned
 	 *  
 	 */
+	
 	public String getCurrentPreferredFirstName() { return currentPreferredFirstName;};
 
 	
@@ -1160,6 +1180,7 @@ public class Database {
 	 * @return the email address value is returned
 	 *  
 	 */
+	
 	public String getCurrentEmailAddress() { return currentEmailAddress;};
 
 	
@@ -1171,6 +1192,7 @@ public class Database {
 	 * @return true if this user plays an Admin role, else false
 	 *  
 	 */
+	
 	public boolean getCurrentAdminRole() { return currentAdminRole;};
 
 	
@@ -1182,6 +1204,7 @@ public class Database {
 	 * @return true if this user plays a Student role, else false
 	 *  
 	 */
+	
 	public boolean getCurrentNewRole1() { return currentNewRole1;};
 
 	
@@ -1193,6 +1216,7 @@ public class Database {
 	 * @return true if this user plays a Reviewer role, else false
 	 *  
 	 */
+	
 	public boolean getCurrentNewRole2() { return currentNewRole2;};
 
 	
@@ -1298,16 +1322,19 @@ public class Database {
      * @param authorUsername The username of the author creating the post.
      * @param title          The title of the post (validated by the caller).
      * @param body           The body of the post (validated by the caller).
+     * @param thread         The thread category for the post.
      * @return The number of rows inserted, or the new post identifier if implemented to return it.
      * @throws RuntimeException If a database error occurs while creating the post.
      */
-    public void createPost(String authorUsername, String title, String body) {
-        String sql = "INSERT INTO Posts (authorUsername, title, body, createdAt, updatedAt, isDeleted)"
-                   + " VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE)";
+    
+    public void createPost(String authorUsername, String title, String body, String thread) {
+        String sql = "INSERT INTO Posts (authorUsername, title, body, thread, createdAt, updatedAt, isDeleted)"
+                   + " VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, FALSE)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, authorUsername);
             ps.setString(2, title);
             ps.setString(3, body);
+            ps.setString(4, thread);
             ps.executeUpdate();
         } catch (SQLException e) { e.printStackTrace(); }
     }
@@ -1323,16 +1350,26 @@ public class Database {
      * @param mineOnly       True to return only the current user's posts; false to return all.
      * @param currentUser    The username used when filtering by author.
      * @param includeDeleted True to include soft-deleted posts; false to exclude them.
+     * @param threadFilter   The thread type to filter by ("All Threads" shows all threads).
      * @return A list of row maps representing posts.
      * @throws RuntimeException If a database error occurs while fetching posts.
      */
-    public List<Map<String,Object>> fetchPosts(boolean mineOnly, String username, boolean includeDeleted) {
+    
+    public List<Map<String,Object>> fetchPosts(boolean mineOnly, String username, boolean includeDeleted, String threadFilter) {
         String where = mineOnly ? "authorUsername = ?" : "1=1";
         String deleted = includeDeleted ? "1=1" : "isDeleted = FALSE";
-        String sql = "SELECT * FROM Posts WHERE " + where + " AND " + deleted + " ORDER BY updatedAt DESC";
+        String thread = (threadFilter != null && !threadFilter.equals("All Threads")) ? "thread = ?" : "1=1";
+        
+        String sql = "SELECT * FROM Posts WHERE " + where + " AND " + deleted + " AND " + thread + " ORDER BY updatedAt DESC";
         List<Map<String,Object>> out = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            if (mineOnly) ps.setString(1, username);
+            int paramIndex = 1;
+            if (mineOnly) {
+                ps.setString(paramIndex++, username);
+            }
+            if (threadFilter != null && !threadFilter.equals("All Threads")) {
+                ps.setString(paramIndex++, threadFilter);
+            }
             ResultSet rs = ps.executeQuery();
             ResultSetMetaData md = rs.getMetaData();
             int n = md.getColumnCount();
@@ -1358,6 +1395,7 @@ public class Database {
      * @return The number of rows affected.
      * @throws RuntimeException If the post does not exist or a database error occurs.
      */
+    
     public void updatePost(int id, String title, String body) {
         String sql = "UPDATE Posts SET title=?, body=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -1379,6 +1417,7 @@ public class Database {
      * @return The number of rows affected.
      * @throws RuntimeException If a database error occurs while updating the post.
      */
+    
     public void softDeletePost(int id) {
         String sql = "UPDATE Posts SET isDeleted=TRUE, updatedAt=CURRENT_TIMESTAMP WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -1399,6 +1438,7 @@ public class Database {
      * @return A map of column names to values representing the post, or {@code null} if not found.
      * @throws RuntimeException If a database error occurs while fetching the post.
      */
+    
     public Map<String,Object> getPost(int id) {
         String sql = "SELECT * FROM Posts WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -1429,6 +1469,7 @@ public class Database {
      * @return The number of rows inserted, or the new reply identifier if implemented to return it.
      * @throws RuntimeException If a database error occurs while creating the reply.
      */
+    
     public void createReply(int postId, String authorUsername, String body) {
         String sql = "INSERT INTO Replies (postId, authorUsername, body, createdAt, updatedAt)"
                    + " VALUES (?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
@@ -1477,6 +1518,7 @@ public class Database {
      * @return A map of column names to values for the reply, or {@code null} if not found.
      * @throws RuntimeException If a database error occurs while fetching the reply.
      */
+    
     public Map<String,Object> getReply(int replyId) {
         String sql = "SELECT * FROM Replies WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -1504,6 +1546,7 @@ public class Database {
      * @return The number of rows affected.
      * @throws RuntimeException If the reply does not exist or a database error occurs.
      */
+    
     public void updateReply(int replyId, String body) {
         String sql = "UPDATE Replies SET body=?, updatedAt=CURRENT_TIMESTAMP WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -1524,6 +1567,7 @@ public class Database {
      * @return The number of rows affected.
      * @throws RuntimeException If a database error occurs while deleting the reply.
      */
+    
     public void deleteReply(int replyId) {
         String sql = "DELETE FROM Replies WHERE id=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

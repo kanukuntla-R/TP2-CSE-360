@@ -38,14 +38,15 @@ public final class Post {
      */
     public static String createPost(String authorUsername,
                                     String titleInput,
-                                    String bodyInput) {
+                                    String bodyInput,
+                                    String thread) {
 
         String err = PostReplyValidator.validatePost(titleInput, bodyInput);
         if (err != null && !err.isEmpty()) {
             return err;
         }
 
-        db().createPost(authorUsername, titleInput.trim(), bodyInput.trim());
+        db().createPost(authorUsername, titleInput.trim(), bodyInput.trim(), thread);
         return "";
     }
 
@@ -69,8 +70,9 @@ public final class Post {
      */
     public static List<Map<String,Object>> fetchPosts(boolean mineOnly,
                                                       String username,
-                                                      boolean includeDeleted) {
-        return db().fetchPosts(mineOnly, username, includeDeleted);
+                                                      boolean includeDeleted,
+                                                      String threadFilter) {
+        return db().fetchPosts(mineOnly, username, includeDeleted, threadFilter);
     }
 
     /**
