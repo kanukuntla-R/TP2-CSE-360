@@ -19,6 +19,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.FXCollections;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.TextField;
 import javafx.scene.control.ListView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -82,6 +83,9 @@ public class ViewRole1Home {
 	protected static Button btnDelete = new Button("Delete");
 
 	protected static ListView<Map<String,Object>> lvPosts = new ListView<>();
+	// This is the Search bar above posts
+	protected static TextField tfSearch = new TextField();
+	protected static Button btnOpenSearch = new Button("Search Posts");
 	// ====== END: GUI Area 2 wiring (updated) ======
 	
 	// This is a separator and it is used to partition the GUI for various tasks
@@ -201,6 +205,17 @@ public class ViewRole1Home {
 		cbThread.getSelectionModel().select(0); // Default to "All Threads"
 		cbThread.relocate(20, 110); // Position above Create button
 
+		// This is the Search bar (above posts list)
+		tfSearch.setPromptText("Enter keyword (press Search Posts to open full search)");
+		tfSearch.setLayoutX(180);
+		tfSearch.setLayoutY(120);
+		tfSearch.setPrefWidth(420);
+
+		btnOpenSearch.setLayoutX(610);
+		btnOpenSearch.setLayoutY(120);
+		setupButtonUI(btnOpenSearch, "Dialog", 14, 140, Pos.CENTER, 610, 120);
+		btnOpenSearch.setOnAction(e -> ControllerRole1Home.openSearch());
+
 		// Custom cell factory with colored circles
 		cbThread.setCellFactory(listView -> new ListCell<String>() {
 		    @Override
@@ -306,14 +321,15 @@ public class ViewRole1Home {
         button_Quit.setOnAction((event) -> {ControllerRole1Home.performQuit(); });
 
 		// This is the end of the GUI initialization code
-		
-		// Place all of the widget items into the Root Pane's list of children
-        theRootPane.getChildren().addAll(
+		// This places all of the widget items into the Root Pane's list of children
+		theRootPane.getChildren().addAll(
 			label_PageTitle, label_UserDetails, button_UpdateThisUser, line_Separator1,
-			// Area 2 widgets (added)
+			// Area 2 widgets
 			cbThread, cbFilter, btnCreate, btnRead, btnUpdate, btnDelete, lvPosts,
-	        // Area 3
-	        line_Separator4, button_Logout, button_Quit
+			// This is the search bar widgets
+			tfSearch, btnOpenSearch,
+			// Area 3
+			line_Separator4, button_Logout, button_Quit
 		);
 }
 	
