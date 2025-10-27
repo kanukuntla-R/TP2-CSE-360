@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import entityClasses.Post;
 import javafx.scene.control.ComboBox;
+import guiSearchPosts.ViewSearchPosts;
 
 public class ControllerRole1Home {
 
@@ -353,6 +354,13 @@ public class ControllerRole1Home {
 	    });
 	}
 
+	// This opens the Search Posts page, pre-filling the keyword from the quick search box
+	protected static void openSearch() {
+		// This sends the prefilled search keyword from the quick search box on the home page
+		String quick = ViewRole1Home.tfSearch.getText();
+		ViewSearchPosts.displaySearch(ViewRole1Home.theStage, ViewRole1Home.theUser, quick);
+	}
+
 	/*-*******************************************************************************************
 
 	Modal Dialog Methods
@@ -499,7 +507,7 @@ public class ControllerRole1Home {
 	 * @param postRow the post row to display and read
 	 */
 	
-	protected static void openReader(Map<String,Object> postRow) {
+	public static void openReader(Map<String,Object> postRow) {
 	    if (postRow == null) return;
 
 	    // pull fields from the selected post row
