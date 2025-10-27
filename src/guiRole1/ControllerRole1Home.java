@@ -138,16 +138,25 @@ public class ControllerRole1Home {
 	 * @param threadFilter the thread type to filter by ("All Threads" shows all threads)
 	 */
 	
-	protected static void loadPosts(boolean mineOnly, String threadFilter){
-		 boolean includeDeleted = true;
-		 List<Map<String,Object>> rows = Post.fetchPosts(
-	            mineOnly,
-	            currentUser(),
-	            includeDeleted,
-	            threadFilter
-	    );
+	public static void loadPosts(String filter, String thread) {
+	    boolean mineOnly  = "My posts".equals(filter);
+	    String readFilter = ("Read".equals(filter) || "Unread".equals(filter)) ? filter : null;
+
+	    var rows = applicationMain.FoundationsMain.database
+	            .fetchPosts(mineOnly,
+	                        ViewRole1Home.theUser.getUserName(),
+	                        false,                 // includeDeleted: keep as before
+	                        thread,
+	                        readFilter);           // NEW
 	    ViewRole1Home.postsUI.setAll(rows);
 	}
+	
+	// Back-compat overload so old call sites still compile
+	public static void loadPosts(boolean mineOnly, String thread) {
+	    String filter = mineOnly ? "My posts" : "All posts";
+	    loadPosts(filter, thread);
+	}
+
 
 	/**********
 	 * <p> Method: getString(Map<String,Object> row, String key) </p>
@@ -218,10 +227,29 @@ public class ControllerRole1Home {
 	 * 
 	 */
 	
-	protected static void readPost() {
+	public static void readPost() {
 	    Map<String,Object> row = ViewRole1Home.lvPosts.getSelectionModel().getSelectedItem();
-	    if (row != null) openReader(row);
+	    if (row == null) return;
+
+	    int postId = getInt(row, "id");
+
+	    String filter = ViewRole1Home.cbFilter.getValue();
+	    String thread = ViewRole1Home.cbThread.getValue();
+
+	    applicationMain.FoundationsMain.database
+	            .markPostRead(ViewRole1Home.theUser.getUserName(), postId);
+
+	    openReader(row);
+
+	    if ("Unread".equals(filter)) {
+	        loadPosts(filter, thread);
+	    } else {
+	        row.put("isRead", 1);
+	        ViewRole1Home.lvPosts.refresh();
+	    }
 	}
+
+
 
 	/**********
 	 * <p> Method: updatePost() </p>
@@ -316,9 +344,10 @@ public class ControllerRole1Home {
 	 * 
 	 */
 	
-	protected static void setupFilterListener() {
-	    ViewRole1Home.cbFilter.valueProperty().addListener((obs, ov, nv) -> 
-	        loadPosts("My posts".equals(nv), ViewRole1Home.cbThread.getValue()));
+	public static void setupFilterListener() {
+	    ViewRole1Home.cbFilter.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+	        loadPosts(newV, ViewRole1Home.cbThread.getValue());
+	    });
 	}
 
 	/**********
@@ -330,10 +359,9 @@ public class ControllerRole1Home {
 	 * 
 	 */
 	
-	protected static void setupThreadListener() {
-	    ViewRole1Home.cbThread.valueProperty().addListener((obs, ov, nv) -> {
-	        boolean mine = "My posts".equals(ViewRole1Home.cbFilter.getValue());
-	        loadPosts(mine, nv);
+	public static void setupThreadListener() {
+	    ViewRole1Home.cbThread.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
+	        loadPosts(ViewRole1Home.cbFilter.getValue(), newV);
 	    });
 	}
 
@@ -345,14 +373,14 @@ public class ControllerRole1Home {
 	 * 
 	 */
 	
-	protected static void setupDoubleClickHandler() {
+	public static void setupDoubleClickHandler() {
 	    ViewRole1Home.lvPosts.setOnMouseClicked(ev -> {
-	        if (ev.getClickCount() == 2) {
-	            Map<String,Object> row = ViewRole1Home.lvPosts.getSelectionModel().getSelectedItem();
-	            if (row != null) openReader(row);
+	        if (ev.getClickCount() == 2 && !ViewRole1Home.lvPosts.getSelectionModel().isEmpty()) {
+	            readPost();
 	        }
 	    });
 	}
+
 
 	// This opens the Search Posts page, pre-filling the keyword from the quick search box
 	protected static void openSearch() {

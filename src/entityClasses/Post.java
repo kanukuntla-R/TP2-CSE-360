@@ -69,11 +69,21 @@ public final class Post {
      *         (case-insensitive access; use get*CI helpers)
      */
     public static List<Map<String,Object>> fetchPosts(boolean mineOnly,
-                                                      String username,
-                                                      boolean includeDeleted,
-                                                      String threadFilter) {
-        return db().fetchPosts(mineOnly, username, includeDeleted, threadFilter);
+            String username,
+            boolean includeDeleted,
+            String threadFilter) {
+    	return db().fetchPosts(mineOnly, username, includeDeleted, threadFilter, null);
     }
+    
+    public static List<Map<String,Object>> fetchPosts(boolean mineOnly,
+            String username,
+            boolean includeDeleted,
+            String threadFilter,
+            String readFilter) {
+    	return db().fetchPosts(mineOnly, username, includeDeleted, threadFilter, readFilter);
+    }
+
+
 
     /**
      * Fetch a single post row by id (even if it's soft-deleted).

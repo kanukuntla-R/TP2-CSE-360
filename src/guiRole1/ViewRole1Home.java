@@ -11,8 +11,6 @@ import javafx.stage.Stage;
 import database.Database;
 import entityClasses.User;
 import guiUserUpdate.ViewUserUpdate;
-
-// ====== added imports for GUI Area 2 ======
 import entityClasses.Post;
 import java.util.Map;
 import javafx.collections.ObservableList;
@@ -26,7 +24,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
-// ==========================================
+import javafx.scene.layout.Priority;
 
 /*******
  * <p> Title: GUIReviewerHomePage Class. </p>
@@ -242,7 +240,7 @@ public class ViewRole1Home {
 		    }
 		});
 
-		cbFilter.getItems().setAll("All posts", "My posts");
+		cbFilter.getItems().setAll("All posts", "My posts", "Read", "Unread");
 		cbFilter.getSelectionModel().select(0);
 		cbFilter.relocate(20, 340);
 		ControllerRole1Home.setupFilterListener();
@@ -261,39 +259,49 @@ public class ViewRole1Home {
 
 		// each item is now a Map<String,Object> row from the DB (Posts table)
 		lvPosts.setCellFactory(v -> new ListCell<>() {
-		    @Override protected void updateItem(Map<String,Object> row, boolean empty) {
+		    @Override
+		    protected void updateItem(Map<String, Object> row, boolean empty) {
 		        super.updateItem(row, empty);
-		        if (empty || row == null) {
-		            setText(null);
-		            setGraphic(null);
-		            return;
-		        }
+		        if (empty || row == null) { setText(null); setGraphic(null); return; }
 
 		        String idStr    = Integer.toString(ControllerRole1Home.getInt(row, "id"));
 		        String title    = ControllerRole1Home.getString(row, "title");
 		        String author   = ControllerRole1Home.getString(row, "authorUsername");
 		        String thread   = ControllerRole1Home.getString(row, "thread");
 		        boolean deleted = Post.getBoolCI(row, "isDeleted");
-		        
-		        // Create styled text with colored thread
-		        TextFlow textFlow = new TextFlow();
-		        
+		        int isRead      = ControllerRole1Home.getInt(row, "isRead"); // 0/1 from DB
+
+		        // LEFT
+		        TextFlow leftFlow = new TextFlow();
+		        Text titleText;
 		        if (deleted) {
-		            Text deletedText = new Text("[Deleted] " + title + " — " + author + " — ");
-		            Text threadText = new Text(thread);
-		            threadText.setFill(getThreadColor(thread));
-		            textFlow.getChildren().addAll(deletedText, threadText);
+		            titleText = new Text("[Deleted] " + title + " — " + author + " — ");
 		        } else {
-		            Text idText = new Text("#" + idStr + "  " + title + " — " + author + " — ");
-		            Text threadText = new Text(thread);
-		            threadText.setFill(getThreadColor(thread));
-		            textFlow.getChildren().addAll(idText, threadText);
+		            titleText = new Text("#" + idStr + "  " + title + " — " + author + " — ");
 		        }
-		        
-		        setGraphic(textFlow);
+		        if (isRead == 0) titleText.setStyle("-fx-font-weight: bold;");
+
+		        Text threadText = new Text(thread);
+		        threadText.setFill(getThreadColor(thread));
+		        leftFlow.getChildren().addAll(titleText, threadText);
+
+		        // RIGHT (right-aligned)
+		        int replies = ControllerRole1Home.getInt(row, "replyCount");
+		        TextFlow rightFlow = new TextFlow(new Text("Replies: " + replies));
+
+		        HBox hBox = new HBox(10);
+		        HBox.setHgrow(leftFlow, javafx.scene.layout.Priority.ALWAYS);
+		        leftFlow.setMaxWidth(Double.MAX_VALUE);
+		        hBox.setAlignment(Pos.CENTER_LEFT);
+		        hBox.getChildren().addAll(leftFlow, rightFlow);
+
+		        setGraphic(hBox);
 		        setText(null);
 		    }
 		});
+
+		
+
 
 		btnCreate.setOnAction(e -> ControllerRole1Home.createPost());
 		btnRead.setOnAction(e -> ControllerRole1Home.readPost());
@@ -309,7 +317,7 @@ public class ViewRole1Home {
 		btnDelete.setDisable(true);
 
 		// Initial load: All posts
-		ControllerRole1Home.loadPosts(false, "All Threads");
+		ControllerRole1Home.loadPosts(cbFilter.getValue(), cbThread.getValue());
 		// ====== END: added posts/replies UI ======
 		
 		

@@ -256,6 +256,17 @@ public class Database {
 		    + "isDeleted BOOL DEFAULT FALSE"
 		    + ")";
 		statement.execute(postsTable);
+		
+		// Per-user read tracking (who has read which post)
+		String postReadsTable = "CREATE TABLE IF NOT EXISTS PostReads ("
+		    + "userName VARCHAR(255) NOT NULL, "
+		    + "postId INT NOT NULL, "
+		    + "readAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+		    + "PRIMARY KEY(userName, postId), "
+		    + "CONSTRAINT fk_postreads_post FOREIGN KEY (postId) REFERENCES Posts(id)"
+		    + ")";
+		statement.execute(postReadsTable);
+
 
 		// Replies table (ensure FK and timestamps)
 		String repliesTable = "CREATE TABLE IF NOT EXISTS Replies ("
@@ -999,6 +1010,25 @@ public class Database {
 	    }
 	}
 	
+	public void markPostRead(String userName, int postId) {
+	    // H2 upsert
+	    String sql = "MERGE INTO PostReads KEY(userName, postId) VALUES(?, ?, CURRENT_TIMESTAMP)";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, userName);
+	        ps.setInt(2, postId);
+	        ps.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+
+	public void markPostUnread(String userName, int postId) {
+	    String sql = "DELETE FROM PostReads WHERE userName = ? AND postId = ?";
+	    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+	        ps.setString(1, userName);
+	        ps.setInt(2, postId);
+	        ps.executeUpdate();
+	    } catch (SQLException e) { e.printStackTrace(); }
+	}
+	
 	
 	/*******
 	 * <p> Method: boolean getUserAccountDetails(String username) </p>
@@ -1355,32 +1385,59 @@ public class Database {
      * @throws RuntimeException If a database error occurs while fetching posts.
      */
     
-    public List<Map<String,Object>> fetchPosts(boolean mineOnly, String username, boolean includeDeleted, String threadFilter) {
-        String where = mineOnly ? "authorUsername = ?" : "1=1";
-        String deleted = includeDeleted ? "1=1" : "isDeleted = FALSE";
-        String thread = (threadFilter != null && !threadFilter.equals("All Threads")) ? "thread = ?" : "1=1";
-        
-        String sql = "SELECT * FROM Posts WHERE " + where + " AND " + deleted + " AND " + thread + " ORDER BY updatedAt DESC";
-        List<Map<String,Object>> out = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            int paramIndex = 1;
-            if (mineOnly) {
-                ps.setString(paramIndex++, username);
-            }
-            if (threadFilter != null && !threadFilter.equals("All Threads")) {
-                ps.setString(paramIndex++, threadFilter);
-            }
-            ResultSet rs = ps.executeQuery();
-            ResultSetMetaData md = rs.getMetaData();
-            int n = md.getColumnCount();
-            while (rs.next()) {
-                Map<String,Object> row = new HashMap<>();
-                for (int i=1;i<=n;i++) row.put(md.getColumnName(i), rs.getObject(i));
-                out.add(row);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return out;
-    }
+    public List<Map<String,Object>> fetchPosts(boolean mineOnly,
+            String username,
+            boolean includeDeleted,
+            String threadFilter,
+	            String readFilter) {
+		String whereMine   = mineOnly ? "p.authorUsername = ?" : "1=1";
+		String whereDel    = includeDeleted ? "1=1" : "p.isDeleted = FALSE";
+		String whereThread = (threadFilter != null && !"All Threads".equals(threadFilter))
+		? "p.thread = ?" : "1=1";
+		
+		String whereRead = "1=1";
+		if ("Read".equals(readFilter))   whereRead = "pr.userName IS NOT NULL";
+		if ("Unread".equals(readFilter)) whereRead = "pr.userName IS NULL";
+
+		String sql =
+		"SELECT p.*, " +
+		"       CASE WHEN pr.userName IS NULL THEN 0 ELSE 1 END AS isRead, " +
+		"       (SELECT COUNT(*) FROM Replies r WHERE r.postId = p.id) AS replyCount " +
+		"FROM Posts p " +
+		"LEFT JOIN PostReads pr ON pr.postId = p.id AND pr.userName = ? " +
+		"WHERE " + whereMine + " AND " + whereDel + " AND " + whereThread + " AND " + whereRead + " " +
+		"ORDER BY p.updatedAt DESC";
+		
+		List<Map<String,Object>> out = new ArrayList<>();
+		try (PreparedStatement ps = connection.prepareStatement(sql)) {
+		int j = 1;
+		// join parameter (for pr.userName)
+		ps.setString(j++, username);
+		
+		if (mineOnly) {
+		ps.setString(j++, username);
+		}
+		if (threadFilter != null && !"All Threads".equals(threadFilter)) {
+		ps.setString(j++, threadFilter);
+		}
+			try (ResultSet rs = ps.executeQuery()) {
+				ResultSetMetaData md = rs.getMetaData();
+				int n = md.getColumnCount();
+				while (rs.next()) {
+				Map<String,Object> row = new HashMap<>();
+					for (int i = 1; i <= n; i++) {
+						row.put(md.getColumnName(i), rs.getObject(i));
+					}
+					out.add(row);
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return out;
+	}
+
+
     
     /*****
      * Updates the title and body of an existing post.

@@ -1,6 +1,2 @@
-
-# IDE & build output
-.classpath
-.project
 bin/
 *.class
