@@ -26,7 +26,18 @@ import entityClasses.Post;
 import javafx.scene.control.ComboBox;
 import guiSearchPosts.ViewSearchPosts;
 
+/**
+ * Controller class for Role1 home screen functionality.
+ * Handles user interactions, post management, and navigation for Role1 users.
+ */
 public class ControllerRole1Home {
+    
+    /**
+     * Default constructor for ControllerRole1Home.
+     */
+    public ControllerRole1Home() {
+        // Default constructor
+    }
 
 	/*-*******************************************************************************************
 
@@ -129,13 +140,13 @@ public class ControllerRole1Home {
 	}
 
 	/**********
-	 * <p> Method: loadPosts(boolean mineOnly, String threadFilter) </p>
+	 * <p> Method: loadPosts(String filter, String thread) </p>
 	 * 
 	 * <p> Description: Loads posts from the database based on the specified filters.
 	 * Updates the UI list with the retrieved posts. </p>
 	 * 
-	 * @param mineOnly true to show only current user's posts, false to show all posts
-	 * @param threadFilter the thread type to filter by ("All Threads" shows all threads)
+	 * @param filter filter type ("My posts", "All posts", "Read", "Unread")
+	 * @param thread the thread type to filter by ("All Threads" shows all threads)
 	 */
 	
 	public static void loadPosts(String filter, String thread) {
@@ -151,7 +162,12 @@ public class ControllerRole1Home {
 	    ViewRole1Home.postsUI.setAll(rows);
 	}
 	
-	// Back-compat overload so old call sites still compile
+	/**
+	 * Overloaded method for backward compatibility.
+	 * 
+	 * @param mineOnly true to show only current user's posts, false to show all posts
+	 * @param thread the thread type to filter by
+	 */
 	public static void loadPosts(boolean mineOnly, String thread) {
 	    String filter = mineOnly ? "My posts" : "All posts";
 	    loadPosts(filter, thread);
@@ -527,7 +543,7 @@ public class ControllerRole1Home {
 	}
 	
 	/**********
-	 * <p> Method: openReader(Map<String,Object> postRow) </p>
+	 * <p> Method: openReader </p>
 	 * 
 	 * <p> Description: Opens a modal dialog for reading a post and its replies.
 	 * Displays the post content and provides CRUD operations for replies. </p>

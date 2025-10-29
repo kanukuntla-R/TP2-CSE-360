@@ -7,6 +7,10 @@ import java.util.List;
 import java.util.Map;
 
 
+/**
+ * Post entity class that manages post creation, retrieval, updates, and deletion.
+ * This class provides an interface to the database for post-related operations.
+ */
 public final class Post {
 
     // no instances
@@ -34,6 +38,7 @@ public final class Post {
      * @param authorUsername logged-in username
      * @param titleInput     raw title from UI
      * @param bodyInput      raw body from UI
+     * @param thread         thread category for the post
      * @return "" on success, else error string
      */
     public static String createPost(String authorUsername,
@@ -50,23 +55,15 @@ public final class Post {
         return "";
     }
 
+   
     /**
-     * Fetch posts for the list on the home page.
-     *
-     * @param mineOnly        true  -> only posts authored by 'username'
-     *                        false -> all posts
-     * @param username        current user's username (only relevant if mineOnly == true)
-     * @param includeDeleted  true  -> include rows with isDeleted=TRUE
-     *                        false -> hide soft-deleted posts
-     *
-     * The UI decides:
-     *   - "All posts": mineOnly=false, includeDeleted=false
-     *   - "My posts" : mineOnly=true,  includeDeleted=true
-     *
-     * @return List of Maps (one map per post row). Each map should contain:
-     *         id, authorUsername, title, body,
-     *         createdAt, updatedAt, isDeleted
-     *         (case-insensitive access; use get*CI helpers)
+     * Fetch posts based on filter criteria.
+     * 
+     * @param mineOnly whether to fetch only the user's posts
+     * @param username the current user's username
+     * @param includeDeleted whether to include deleted posts
+     * @param threadFilter filter posts by specific thread category
+     * @return list of post data as maps
      */
     public static List<Map<String,Object>> fetchPosts(boolean mineOnly,
             String username,
@@ -75,6 +72,16 @@ public final class Post {
     	return db().fetchPosts(mineOnly, username, includeDeleted, threadFilter, null);
     }
     
+    /**
+     * Fetch posts based on filter criteria with additional read status filtering.
+     * 
+     * @param mineOnly whether to fetch only the user's posts
+     * @param username the current user's username
+     * @param includeDeleted whether to include deleted posts
+     * @param threadFilter filter posts by specific thread category
+     * @param readFilter filter posts by read status
+     * @return list of post data as maps
+     */
     public static List<Map<String,Object>> fetchPosts(boolean mineOnly,
             String username,
             boolean includeDeleted,
@@ -130,7 +137,7 @@ public final class Post {
      *   - fetchPosts(..., includeDeleted=false) will hide it from "All posts".
      *   - fetchPosts(..., includeDeleted=true) will still return it for "My posts",
      *     and the UI can render it as:
-     *        [Deleted] <title> — <author>
+     *        [Deleted] "title" — "author"
      *
      *   - buildThreadView(postId) WILL STILL RETURN THIS POST ROW.
      *     The UI can then show:
@@ -178,7 +185,7 @@ public final class Post {
             return "That post no longer exists.";
         }
         if (isPostDeleted(parentRow)) {
-            // <- this is the soft-delete rule enforcement
+            
             return "You can't reply to a deleted post.";
         }
 
@@ -253,6 +260,13 @@ public final class Post {
         return "";
     }
 
+    /**
+     * Get a string value from a map using case-insensitive key matching.
+     * 
+     * @param row the map containing the data
+     * @param keyWanted the key to search for (case-insensitive)
+     * @return the string value or empty string if not found
+     */
     public static String getStringCI(Map<String,Object> row, String keyWanted) {
         if (row == null) return "";
         for (String k : row.keySet()) {
@@ -265,6 +279,13 @@ public final class Post {
     }
 
     
+    /**
+     * Get an integer value from a map using case-insensitive key matching.
+     * 
+     * @param row the map containing the data
+     * @param keyWanted the key to search for (case-insensitive)
+     * @return the integer value or -1 if not found or not convertible to int
+     */
     public static int getIntCI(Map<String,Object> row, String keyWanted) {
         if (row == null) return -1;
         for (String k : row.keySet()) {
@@ -282,6 +303,13 @@ public final class Post {
     }
 
     
+    /**
+     * Get a boolean value from a map using case-insensitive key matching.
+     * 
+     * @param row the map containing the data
+     * @param keyWanted the key to search for (case-insensitive)
+     * @return the boolean value or false if not found
+     */
     public static boolean getBoolCI(Map<String,Object> row, String keyWanted) {
         if (row == null) return false;
 

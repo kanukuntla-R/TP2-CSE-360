@@ -6,7 +6,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ListCell;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ComboBox;
 import guiRole1.ViewRole1Home;
@@ -23,7 +22,23 @@ import java.util.Map;
 import entityClasses.Post;
 import entityClasses.User;
 
-// This is the View class for searching posts
+/**
+ * View class for the search posts functionality in the MVC architecture.
+ * Manages the user interface and display of the search window.
+ * 
+ * <p>This view provides:
+ * <ul>
+ *   <li>A keyword text field for entering search terms</li>
+ *   <li>A thread dropdown for filtering by thread category</li>
+ *   <li>A list view displaying search results with post details</li>
+ *   <li>Double-click functionality to open posts in the reader</li>
+ *   <li>Navigation buttons (Search and Back)</li>
+ * </ul>
+ * 
+ * <p>The view uses a thread combo box with color-coded categories to match
+ * the visual style of the Student Home Page. Search results display post ID,
+ * title, author, thread, match type, and a contextual snippet.
+ */
 public class ViewSearchPosts {
 
     private static double width = applicationMain.FoundationsMain.WINDOW_WIDTH;
@@ -34,22 +49,65 @@ public class ViewSearchPosts {
     private static Scene theScene;
     protected static User theUser;
 
-    // These are the fields for the UI widgets
+    /**
+     * Text field for entering the search keyword.
+     * Used by the Controller to retrieve the search term.
+     */
     protected static TextField tfKeyword = new TextField();
+    
+    /**
+     * Combo box for selecting the thread category to filter searches.
+     * Options include: All Threads, General, Lectures, Sections, Problem Sets, Assignments, Social.
+     * Used by the Controller to retrieve the selected thread filter.
+     */
     protected static ComboBox<String> cbThread = new ComboBox<>();
+    
+    /**
+     * Search button that triggers the search operation.
+     */
     protected static Button btnSearch = new Button("Search");
+    
+    /**
+     * Back button that returns to the Role1 Home page.
+     */
     protected static Button btnBack = new Button("Back");
 
+    /**
+     * Observable list containing the search results.
+     * Each result is a Map with post information including matchType and matchSnippet.
+     * Used by the ListView to display search results.
+     */
     protected static final ObservableList<Map<String,Object>> resultsUI = FXCollections.observableArrayList();
+    
+    /**
+     * ListView displaying the search results.
+     * Configured with a custom cell factory to show formatted post information.
+     */
     protected static ListView<Map<String,Object>> lvResults = new ListView<>();
 
     private static ViewSearchPosts theView;
 
+    /**
+     * Displays the search window with the specified stage and user.
+     * 
+     * @param ps The primary stage to display the window on
+     * @param user The current user performing the search
+     */
     public static void displaySearch(Stage ps, User user) {
         displaySearch(ps, user, "");
     }
 
-    // This is the search display method that shows the window and pre-fills an initial keyword 
+    /**
+     * Displays the search window with an optional initial keyword pre-filled in the search field.
+     * 
+     * <p>Opens the search window for the user, resetting the thread selection
+     * to "All Threads" and optionally pre-filling the keyword field with the provided value.
+     * If the keyword is null, an empty string is used instead.
+     * 
+     * @param ps The primary stage to display the window on
+     * @param user The current user performing the search
+     * @param initialKeyword The keyword to pre-fill in the search field (null or empty for blank)
+     */
     public static void displaySearch(Stage ps, User user, String initialKeyword) {
         theStage = ps;
         theUser = user;
@@ -66,6 +124,19 @@ public class ViewSearchPosts {
         theStage.show();
     }
 
+    /**
+     * Private constructor that initializes the view and sets up all UI components.
+     * 
+     * <p>Creates and configures:
+     * <ul>
+     *   <li>Window title and layout</li>
+     *   <li>Keyword input field with label</li>
+     *   <li>Thread dropdown with color-coded categories</li>
+     *   <li>Search and Back buttons with action handlers</li>
+     *   <li>Results ListView with custom cell rendering</li>
+     *   <li>Double-click handler for opening posts</li>
+     * </ul>
+     */
     private ViewSearchPosts() {
         theRootPane = new Pane();
         theScene = new Scene(theRootPane, width, height);
@@ -176,6 +247,17 @@ public class ViewSearchPosts {
         theRootPane.getChildren().addAll(lblTitle, lblKeyword, tfKeyword, lblThread, cbThread, btnSearch, btnBack, lvResults);
     }
 
+    /**
+     * Helper method to set up label UI properties.
+     * 
+     * @param l The label to configure
+     * @param ff The font family
+     * @param f The font size
+     * @param w The minimum width
+     * @param p The text alignment position
+     * @param x The x-coordinate layout position
+     * @param y The y-coordinate layout position
+     */
     private static void setupLabelUI(Label l, String ff, double f, double w, Pos p, double x, double y){
         l.setFont(Font.font(ff, f));
         l.setMinWidth(w);
@@ -184,6 +266,17 @@ public class ViewSearchPosts {
         l.setLayoutY(y);
     }
 
+    /**
+     * Helper method to set up button UI properties.
+     * 
+     * @param b The button to configure
+     * @param ff The font family
+     * @param f The font size
+     * @param w The minimum width
+     * @param p The text alignment position
+     * @param x The x-coordinate layout position
+     * @param y The y-coordinate layout position
+     */
     private static void setupButtonUI(Button b, String ff, double f, double w, Pos p, double x, double y){
         b.setFont(Font.font(ff, f));
         b.setMinWidth(w);
@@ -192,6 +285,23 @@ public class ViewSearchPosts {
         b.setLayoutY(y);
     }
 
+    /**
+     * Maps thread names to their corresponding colors for visual display.
+     * 
+     * <p>Provides consistent color-coding across the application:
+     * <ul>
+     *   <li>General - Blue</li>
+     *   <li>Lectures - Green</li>
+     *   <li>Sections - Orange</li>
+     *   <li>Problem Sets - Red</li>
+     *   <li>Assignments - Purple</li>
+     *   <li>Social - Cyan</li>
+     *   <li>Default/Unknown - Gray</li>
+     * </ul>
+     * 
+     * @param thread The thread name to get the color for
+     * @return The Color corresponding to the thread, or Color.GRAY for unknown threads
+     */
     private static Color getThreadColor(String thread) {
         switch (thread) {
             case "General": return Color.BLUE;

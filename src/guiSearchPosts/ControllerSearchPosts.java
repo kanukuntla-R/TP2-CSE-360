@@ -7,12 +7,49 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 import entityClasses.Post;
-import entityClasses.User;
 
-// This is the Controller class for searching posts
+/**
+ * Controller class for the search posts functionality in the MVC architecture.
+ * Handles the business logic for searching posts and replies based on keywords.
+ * Performs search across post titles and bodies, as well as reply content.
+ * 
+ * <p>This controller coordinates between the View and Model components to:
+ * <ul>
+ *   <li>Validate search input (keyword required)</li>
+ *   <li>Filter posts by thread selection (or search all threads)</li>
+ *   <li>Match keywords against post titles, bodies, and reply content</li>
+ *   <li>Generate text snippets highlighting matches</li>
+ *   <li>Display results or appropriate error messages</li>
+ * </ul>
+ */
 public class ControllerSearchPosts {
 
-    // This is the method that performs the search based on the keyword and thread selected in the View
+    /**
+     * Private constructor to prevent instantiation.
+     * This class contains only static utility methods.
+     */
+    private ControllerSearchPosts() {}
+
+    /**
+     * Performs a search operation based on the keyword and thread selected in the View.
+     * 
+     * <p>Searches for the keyword in:
+     * <ul>
+     *   <li>Post titles</li>
+     *   <li>Post bodies</li>
+     *   <li>Reply content within posts</li>
+     * </ul>
+     * 
+     * <p>Matches are collected in a list and displayed in the View's results ListView.
+     * Each match includes:
+     * <ul>
+     *   <li>Original post information</li>
+     *   <li>Match type ("post" or "reply")</li>
+     *   <li>A text snippet highlighting the matched keyword</li>
+     * </ul>
+     * 
+     * <p>Shows an error alert if keyword is empty, or an information alert if no matches found.
+     */
     public static void performSearch() {
         String keyword = ViewSearchPosts.tfKeyword.getText();
     String thread = ViewSearchPosts.cbThread.getValue();
@@ -67,6 +104,17 @@ public class ControllerSearchPosts {
         }
     }
 
+    /**
+     * Creates a text snippet containing the matched keyword with surrounding context.
+     * 
+     * <p>Extracts approximately 20 characters before and after the keyword match
+     * to provide context for the search result. Removes newlines for cleaner display
+     * and adds ellipsis (...) if the snippet is truncated.
+     * 
+     * @param text The text to create a snippet from
+     * @param keywordLower The keyword to search for (in lowercase)
+     * @return A snippet string with the keyword and surrounding context, or empty string if keyword not found
+     */
     private static String makeSnippet(String text, String keywordLower) {
         if (text == null) return "";
         String tl = text.toLowerCase();
